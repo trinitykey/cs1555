@@ -29,17 +29,10 @@ ON sensor.maintainer = worker.ssn;
 ---------------------------------------------
 -- Question #4d:
 ---------------------------------------------
-DROP TABLE IF EXISTS table1;
-SELECT * INTO table1 FROM(
-SELECT name, state as state_col
-FROM FOREST JOIN COVERAGE
-ON forest.forest_no = coverage.forest_no
-GROUP BY name, state) as foo;
-
-SELECT DISTINCT T1.state_col, T2.state_col, T1.name
-FROM table1 as T1 JOIN table1 as T2
-ON T1.name = T2.name AND (T1.state_col != T2.state_col)
-ORDER BY T1.state_col, T2.state_col, T1.name;
+SELECT DISTINCT c1.state, c2.state
+FROM coverage as c1 JOIN coverage as c2
+ON c1.forest_no = c2.forest_no
+WHERE c1.state < c2.state;
 
 ---------------------------------------------
 -- Question #4e:
