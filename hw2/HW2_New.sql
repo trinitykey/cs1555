@@ -255,31 +255,52 @@ INSERT INTO REPORT VALUES (4,TO_TIMESTAMP('12/6/2020 22:00', 'mm/dd/yyyy hh24:mi
 
 
 -------------------------------------PART 4--------------------------------
---A
-SELECT name FROM FOREST WHERE acid_level >= 0.65 and acid_level <=0.85;
--- use every clause once
+--4A
+SELECT name
+FROM FOREST
+WHERE acid_level >= 0.65 and acid_level <=0.85;
 
---B
--- do not store in a table, in one query we do everything
--- DROP TABLE IF EXISTS road_inter CASCADE;
--- SELECT * INTO road_inter FROM (SELECT * FROM ROAD NATURAL JOIN INTERSECTION) AS road_inter;
---
--- DROP TABLE IF EXISTS ALNF CASCADE;
--- SELECT * INTO ALNF FROM (SELECT * FROM FOREST WHERE name = 'Allegheny National Forest') AS ALNF;
---
--- DROP TABLE IF EXISTS pro CASCADE;
--- SELECT * INTO pro FROM (SELECT forest_no FROM ALNF) AS pro;
---
--- DROP TABLE IF EXISTS res1 CASCADE;
--- SELECT * INTO res1 FROM (SELECT * FROM road_inter NATURAL JOIN pro) as res1;
---
--- SELECT name FROM res1;
+--4B
+SELECT name
+FROM (SELECT name,forest_no FROM ROAD NATURAL JOIN INTERSECTION) as name_and_no NATURAL JOIN
+(SELECT forest_no FROM FOREST WHERE name = 'Allegheny National Forest') as final_join;
 
--- SELECT name FROM(
---         SELECT name,forest_no FROM (ROAD NATURAL JOIN INTERSECTION)  as s
---         NATURAL JOIN (SELECT forest_no FROM(SELECT * FROM FOREST WHERE name = 'Allegheny National FOREST')as f) as w
---     ) as final;
+--4C
+SELECT sensor_id, name
+FROM sensor LEFT JOIN worker
+ON sensor.maintainer = worker.ssn;
 
+--4D
+DROP TABLE IF EXISTS table1;
+SELECT * INTO table1 FROM(
+SELECT name, state as state_col
+FROM FOREST JOIN COVERAGE
+ON forest.forest_no = coverage.forest_no
+GROUP BY name, state) as foo;
+
+SELECT DISTINCT T1.state_col, T2.state_col, T1.name
+FROM table1 as T1 JOIN table1 as T2
+ON T1.name = T2.name AND T1.state_col != T2.state_col
+ORDER BY T1.state_col, T2.state_col, T1.name;
+
+--4E
+SELECT name, AVG(avg_temp) as final_avg, count(name) FROM (
+SELECT name, AVG (temperature) as avg_temp
+FROM (
+	SELECT sensor_id,x,y,temperature FROM sensor NATURAL JOIN report) as nat_join
+	JOIN FOREST
+	ON x <= forest.mbr_xmax AND x >= forest.mbr_xmin AND y <= forest.mbr_ymax AND y >= forest.mbr_ymin
+	GROUP BY name) as foo
+ GROUP BY name ORDER BY final_avg DESC;
+
+--4F
+SELECT count(*) as sensor_count, CASE
+WHEN name IS NULL then 'NO MAINTAINER'
+ELSE name
+END AS WORKER
+FROM sensor LEFT JOIN worker
+ON sensor.maintainer = worker.ssn
+GROUP BY name;
 
 
 
